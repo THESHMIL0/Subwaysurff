@@ -2,15 +2,34 @@ import * as THREE from 'three';
 
 export class Player {
     constructor(scene) {
-        // Placeholder procedural character
-        const geometry = new THREE.BoxGeometry(1, 2, 1);
-        const material = new THREE.MeshLambertMaterial({ color: 0x00ffcc });
-        this.mesh = new THREE.Mesh(geometry, material);
+        // Create a Group to hold our complex character
+        this.mesh = new THREE.Group();
         
-        this.laneWidth = 3; // Distance between lanes
-        this.currentLane = 0; // -1 (left), 0 (center), 1 (right)
+        // 1. Create the Body
+        const bodyGeo = new THREE.BoxGeometry(0.8, 1.2, 0.6);
+        const bodyMat = new THREE.MeshLambertMaterial({ color: 0x222222 });
+        const body = new THREE.Mesh(bodyGeo, bodyMat);
+        body.position.y = 0.6; // Shift up so bottom is at 0
+        this.mesh.add(body);
+
+        // 2. Create the Head
+        const headGeo = new THREE.BoxGeometry(0.9, 0.8, 0.7);
+        const headMat = new THREE.MeshLambertMaterial({ color: 0x444444 });
+        const head = new THREE.Mesh(headGeo, headMat);
+        head.position.y = 1.6; // Place on top of body
+        this.mesh.add(head);
+
+        // 3. Create a Glowing Visor (Eyes)
+        const visorGeo = new THREE.BoxGeometry(0.7, 0.2, 0.1);
+        const visorMat = new THREE.MeshBasicMaterial({ color: 0x00ffcc }); // BasicMaterial glows!
+        const visor = new THREE.Mesh(visorGeo, visorMat);
+        visor.position.set(0, 1.6, 0.36); // Front of the head
+        this.mesh.add(visor);
+        
+        this.laneWidth = 3; 
+        this.currentLane = 0; 
         this.targetX = 0;
-        this.baseY = 1; // Half of height
+        this.baseY = 0; // Our group's origin is now at its feet
         
         this.mesh.position.set(0, this.baseY, 0);
         scene.add(this.mesh);
@@ -18,60 +37,7 @@ export class Player {
         this.velocity = new THREE.Vector3();
         this.isGrounded = true;
         this.isSliding = false;
-        
-        // Cooldowns
         this.canSwitchLane = true;
     }
-
-    reset() {
-        this.currentLane = 0;
-        this.targetX = 0;
-        this.mesh.position.set(0, this.baseY, 0);
-        this.velocity.set(0,0,0);
-        this.isGrounded = true;
-        this.mesh.scale.y = 1;
-    }
-
-    update(controls, deltaTime, physics) {
-        // Handle Input
-        if (controls.keys.left && this.canSwitchLane && this.currentLane > -1) {
-            this.currentLane--;
-            this.canSwitchLane = false;
-        } else if (controls.keys.right && this.canSwitchLane && this.currentLane < 1) {
-            this.currentLane++;
-            this.canSwitchLane = false;
-        }
-
-        // Reset lane switch cooldown
-        if (!controls.keys.left && !controls.keys.right) {
-            this.canSwitchLane = true;
-        }
-
-        if (controls.keys.up && this.isGrounded) {
-            this.velocity.y = 18; // Jump force
-            this.isGrounded = false;
-        }
-
-        if (controls.keys.down && this.isGrounded && !this.isSliding) {
-            this.slide();
-        }
-
-        // Smoothly interpolate (lerp) X position for lane switching
-        this.targetX = this.currentLane * this.laneWidth;
-        this.mesh.position.x += (this.targetX - this.mesh.position.x) * 10 * deltaTime;
-
-        // Apply physics
-        physics.applyGravity(this, deltaTime);
-    }
-
-    slide() {
-        this.isSliding = true;
-        this.mesh.scale.y = 0.5;
-        this.mesh.position.y = this.baseY / 2;
-        setTimeout(() => {
-            this.isSliding = false;
-            this.mesh.scale.y = 1;
-            this.mesh.position.y = this.baseY;
-        }, 600);
-    }
-}
+    
+    // ... keep the rest of your update(), reset(), and slide() methods exactly the same!
