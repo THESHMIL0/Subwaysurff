@@ -2,34 +2,27 @@ import * as THREE from 'three';
 
 export class Player {
     constructor(scene) {
-        // Create a Group to hold our complex character
-        this.mesh = new THREE.Group();
-        
-        // 1. Create the Body
-        const bodyGeo = new THREE.BoxGeometry(0.8, 1.2, 0.6);
-        const bodyMat = new THREE.MeshLambertMaterial({ color: 0x222222 });
-        const body = new THREE.Mesh(bodyGeo, bodyMat);
-        body.position.y = 0.6; // Shift up so bottom is at 0
-        this.mesh.add(body);
+        // Group allows us to stick multiple shapes together
+        this.mesh = new THREE.Group(); 
 
-        // 2. Create the Head
-        const headGeo = new THREE.BoxGeometry(0.9, 0.8, 0.7);
-        const headMat = new THREE.MeshLambertMaterial({ color: 0x444444 });
-        const head = new THREE.Mesh(headGeo, headMat);
-        head.position.y = 1.6; // Place on top of body
-        this.mesh.add(head);
+        // 1. Robot Body
+        const bodyGeo = new THREE.BoxGeometry(1, 1.2, 1);
+        const bodyMat = new THREE.MeshLambertMaterial({ color: 0x00ffcc });
+        this.body = new THREE.Mesh(bodyGeo, bodyMat);
+        this.body.position.y = 0.6;
+        this.mesh.add(this.body);
 
-        // 3. Create a Glowing Visor (Eyes)
-        const visorGeo = new THREE.BoxGeometry(0.7, 0.2, 0.1);
-        const visorMat = new THREE.MeshBasicMaterial({ color: 0x00ffcc }); // BasicMaterial glows!
-        const visor = new THREE.Mesh(visorGeo, visorMat);
-        visor.position.set(0, 1.6, 0.36); // Front of the head
-        this.mesh.add(visor);
-        
-        this.laneWidth = 3; 
-        this.currentLane = 0; 
+        // 2. Robot Head
+        const headGeo = new THREE.BoxGeometry(0.8, 0.8, 0.8);
+        const headMat = new THREE.MeshLambertMaterial({ color: 0xffffff });
+        this.head = new THREE.Mesh(headGeo, headMat);
+        this.head.position.y = 1.6;
+        this.mesh.add(this.head);
+
+        this.laneWidth = 3; // Distance between lanes
+        this.currentLane = 0; // -1 (left), 0 (center), 1 (right)
         this.targetX = 0;
-        this.baseY = 0; // Our group's origin is now at its feet
+        this.baseY = 0.5; // Hover slightly off the ground
         
         this.mesh.position.set(0, this.baseY, 0);
         scene.add(this.mesh);
@@ -39,5 +32,70 @@ export class Player {
         this.isSliding = false;
         this.canSwitchLane = true;
     }
-    
-    // ... keep the rest of your update(), reset(), and slide() methods exactly the same!
+
+    reset() {
+        this.currentLane = 0;
+        this.targetX = 0;
+        this.mesh.position.set(0, this.baseY, 0);
+        this.velocity.set(0,0,0);
+        this.isGrounded = true;
+        
+        // Reset sliding visuals
+        this.head.position.y = 1.6;
+        this.body.scale.y = 1;
+        this.body.position.y = 0.6;
+        this.isSliding = false;
+    }
+
+    update(controls, deltaTime, physics) {
+        // Handle Lane Switching Input
+        if (controls.keys.left && this.canSwitchLane && this.currentLane > -1) {
+            this.currentLane--;
+            this.canSwitchLane = false;
+        } else if (controls.keys.right && this.canSwitchLane && this.currentLane < 1) {
+            this.currentLane++;
+            this.canSwitchLane = false;
+        }
+
+        if (!controls.keys.left && !controls.keys.right) {
+            this.canSwitchLane = true;
+        }
+
+        // Handle Jump
+        if (controls.keys.up && this.isGrounded) {
+            this.velocity.y = 18; // Upward force
+            this.isGrounded = false;
+        }
+
+        // Handle Slide
+        if (controls.keys.down && this.isGrounded && !this.isSliding) {
+            this.slide();
+        }
+
+        // Smoothly interpolate (lerp) X position for lane switching
+        this.targetX = this.currentLane * this.laneWidth;
+        this.mesh.position.x += (this.targetX - this.mesh.position.x) * 10 * deltaTime;
+
+        // Apply gravity from physics system
+        physics.applyGravity(this, deltaTime);
+    }
+
+    slide() {
+        this.isSliding = true;
+        
+        // Compress the robot programmatically to duck
+        this.head.position.y = 0.8;
+        this.body.scale.y = 0.2;
+        this.body.position.y = 0.1;
+        
+        // Stand back up after 600ms
+        setTimeout(() => {
+            if(this.isSliding) { // Check just in case the game reset
+                this.isSliding = false;
+                this.head.position.y = 1.6;
+                this.body.scale.y = 1;
+                this.body.position.y = 0.6;
+            }
+        }, 600);
+    }
+}
