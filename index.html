@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Subway Runner - Endless Runner Game</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div id="gameContainer"></div>
+    <div id="startMenu" class="menu active">
+        <div class="menu-content">
+            <h1>🚇 SUBWAY RUNNER</h1>
+            <p class="subtitle">Endless Runner Game</p>
+            <div class="controls-info">
+                <h3>Desktop Controls:</h3>
+                <ul>
+                    <li><kbd>← →</kbd> - Change Lane</li>
+                    <li><kbd>↑</kbd> - Jump</li>
+                    <li><kbd>↓</kbd> - Slide</li>
+                    <li><kbd>Space</kbd> - Pause</li>
+                </ul>
+                <h3>Mobile Controls:</h3>
+                <ul>
+                    <li>Swipe ← → - Change Lane</li>
+                    <li>Swipe ↑ - Jump</li>
+                    <li>Swipe ↓ - Slide</li>
+                </ul>
+            </div>
+            <button id="startBtn" class="btn-primary">START GAME</button>
+        </div>
+    </div>
+    <div id="hud" class="hud">
+        <div class="hud-left">
+            <div class="stat">
+                <span class="label">SCORE</span>
+                <span id="scoreDisplay" class="value">0</span>
+            </div>
+            <div class="stat">
+                <span class="label">COINS</span>
+                <span id="coinDisplay" class="value">0</span>
+            </div>
+        </div>
+        <div class="hud-center">
+            <div class="stat">
+                <span class="label">SPEED</span>
+                <span id="speedDisplay" class="value">1.0x</span>
+            </div>
+        </div>
+        <div class="hud-right">
+            <button id="audioToggle" class="btn-icon" title="Toggle Sound">🔊</button>
+            <button id="pauseBtn" class="btn-icon" title="Pause Game">⏸</button>
+        </div>
+    </div>
+    <div id="pauseMenu" class="menu">
+        <div class="menu-content">
+            <h1>PAUSED</h1>
+            <button id="resumeBtn" class="btn-primary">RESUME</button>
+            <button id="restartBtn" class="btn-secondary">RESTART</button>
+            <button id="menuBtn" class="btn-secondary">MAIN MENU</button>
+        </div>
+    </div>
+    <div id="gameOverScreen" class="menu">
+        <div class="menu-content">
+            <h1>GAME OVER</h1>
+            <div class="stats-display">
+                <div class="stat-row">
+                    <span class="stat-label">Final Score:</span>
+                    <span id="finalScore" class="stat-value">0</span>
+                </div>
+                <div class="stat-row">
+                    <span class="stat-label">Coins Collected:</span>
+                    <span id="finalCoins" class="stat-value">0</span>
+                </div>
+                <div class="stat-row">
+                    <span class="stat-label">High Score:</span>
+                    <span id="highScoreDisplay" class="stat-value">0</span>
+                </div>
+            </div>
+            <button id="restartGameBtn" class="btn-primary">PLAY AGAIN</button>
+            <button id="menuGameBtn" class="btn-secondary">MAIN MENU</button>
+        </div>
+    </div>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script type="module" src="main.js"></script>
+</body>
+</html>
