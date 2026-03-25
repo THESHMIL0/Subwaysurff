@@ -5,6 +5,7 @@ import { Environment } from './js/environment.js';
 import { Physics } from './js/physics.js';
 import { ObstacleManager } from './js/obstacles.js';
 import { UIManager } from './js/ui.js';
+import { AudioManager } from './js/audio.js'; // Import our new audio engine!
 
 class Game {
     constructor() {
@@ -13,6 +14,7 @@ class Game {
         this.ui = new UIManager();
         this.controls = new Controls();
         this.physics = new Physics();
+        this.audio = new AudioManager(); // Initialize audio
         
         this.environment = new Environment(this.scene);
         this.player = new Player(this.scene);
@@ -47,6 +49,10 @@ class Game {
     }
 
     startGame() {
+        // Browsers require user interaction before audio plays. The start button click counts!
+        this.audio.resume();
+        this.audio.startBGM();
+
         this.player.reset();
         this.obstacles.reset();
         this.currentSpeed = this.baseSpeed;
@@ -57,6 +63,8 @@ class Game {
 
     gameOver() {
         this.gameState = 'GAMEOVER';
+        this.audio.stopBGM();
+        this.audio.playCrash(); // Play crash sound!
         this.ui.showGameOver(() => this.startGame());
     }
 
@@ -69,14 +77,26 @@ class Game {
             this.currentSpeed += deltaTime * 0.5;
             this.distance += this.currentSpeed * deltaTime;
 
+            // Check jump state before updating player
+            const wasGrounded = this.player.isGrounded;
+
             // Update Modules
             this.player.update(this.controls, deltaTime, this.physics);
+            
+            // If player just left the ground moving up, play jump sound!
+            if (wasGrounded && !this.player.isGrounded && this.player.velocity.y > 0) {
+                this.audio.playJump();
+            }
+
             this.environment.update(this.currentSpeed, deltaTime);
             
             this.obstacles.update(
                 this.currentSpeed, deltaTime, this.player, this.physics,
                 () => this.gameOver(), // onHit callback
-                () => { this.coinsCollected++; } // onCoin callback
+                () => { 
+                    this.coinsCollected++; 
+                    this.audio.playCoin(); // Play coin sound!
+                } 
             );
 
             // Subtle camera movement based on player position
